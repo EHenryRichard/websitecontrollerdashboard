@@ -4,7 +4,7 @@ import {
   FiDatabase,
   FiMessageSquare,
   FiSettings,
- 
+  FiUserPlus,
 } from 'react-icons/fi';
 
 export const navigationData = [
@@ -31,6 +31,12 @@ export const navigationData = [
     label: 'Messages',
     icon: FiMessageSquare,
     href: '/dashboard/messages',
+  },
+  {
+    name: 'register-client',
+    label: 'Register Client',
+    icon: FiUserPlus,
+    href: '/dashboard/register-client',
   },
 ];
 

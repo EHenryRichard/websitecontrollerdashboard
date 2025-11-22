@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(dir:*)",
+      "Bash(nul)",
+      "Bash(findstr:*)",
+      "Bash(npm install:*)",
+      "Bash(del \"c:\\Users\\ricke\\Desktop\\properProjects\\websitecontrollerdashboard\\app\\contexts\\NotificationProvider.js\")",
+      "Bash(del \"c:\\Users\\ricke\\Desktop\\properProjects\\websitecontrollerdashboard\\app\\dashboard\\add-site\\page.jsx\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

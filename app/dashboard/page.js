@@ -1,13 +1,39 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import TopBar from '@/components/layout/TopBar';
-import {
-  FiGlobe,
-  FiDatabase,
-  FiMessageSquare,
-  FiClock,
-} from 'react-icons/fi';
+import { FiGlobe, FiDatabase, FiMessageSquare, FiClock, FiUsers } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthProvider';
+import { useData } from '../contexts/DataProvider';
 
 export default function DashboardPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { sites, clients, isLoadingSites, isLoadingClients } = useData();
+  const router = useRouter();
+
+  // console.log(isAuthenticated, isLoading);
+
+  // Protect this page - redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/auth/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render content if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* <TopBar
@@ -21,112 +47,110 @@ export default function DashboardPage() {
           {/* Stats Cards */}
           <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <FiGlobe
-                size={24}
-                className="text-blue-500"
-              />
+              <FiGlobe size={24} className="text-blue-500" />
             </div>
-            <p className="text-gray-400 text-sm mb-1">
-              Total Sites
-            </p>
-            <p className="text-3xl font-bold">8</p>
-            <p className="text-green-500 text-sm mt-2">
-              ↑ 2 this month
-            </p>
+            <p className="text-gray-400 text-sm mb-1">Total Sites</p>
+            <p className="text-3xl font-bold">{isLoadingSites ? '...' : sites.length}</p>
+            <p className="text-gray-500 text-sm mt-2">Managed websites</p>
           </div>
 
           <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <FiDatabase
-                size={24}
-                className="text-orange-500"
-              />
+              <FiUsers size={24} className="text-orange-500" />
             </div>
-            <p className="text-gray-400 text-sm mb-1">
-              Active Backups
-            </p>
-            <p className="text-3xl font-bold">6</p>
-            <p className="text-blue-500 text-sm mt-2">
-              All running
-            </p>
+            <p className="text-gray-400 text-sm mb-1">Total Clients</p>
+            <p className="text-3xl font-bold">{isLoadingClients ? '...' : clients.length}</p>
+            <p className="text-gray-500 text-sm mt-2">Registered clients</p>
           </div>
 
           <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <FiMessageSquare
-                size={24}
-                className="text-purple-500"
-              />
+              <FiDatabase size={24} className="text-purple-500" />
             </div>
-            <p className="text-gray-400 text-sm mb-1">
-              Pending Messages
+            <p className="text-gray-400 text-sm mb-1">Active Sites</p>
+            <p className="text-3xl font-bold">
+              {isLoadingSites ? '...' : sites.filter((s) => s.status === 'active').length}
             </p>
-            <p className="text-3xl font-bold">3</p>
-            <p className="text-yellow-500 text-sm mt-2">
-              2 scheduled today
-            </p>
+            <p className="text-green-500 text-sm mt-2">Currently active</p>
           </div>
 
           <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <FiClock
-                size={24}
-                className="text-green-500"
-              />
+              <FiClock size={24} className="text-green-500" />
             </div>
-            <p className="text-gray-400 text-sm mb-1">
-              Last Backup
+            <p className="text-gray-400 text-sm mb-1">Inactive Sites</p>
+            <p className="text-3xl font-bold">
+              {isLoadingSites ? '...' : sites.filter((s) => s.status !== 'active').length}
             </p>
-            <p className="text-3xl font-bold">2h</p>
-            <p className="text-gray-400 text-sm mt-2">
-              ago
-            </p>
+            <p className="text-yellow-500 text-sm mt-2">Needs attention</p>
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Sites */}
         <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
-          <h3 className="text-lg font-bold mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <FiDatabase
-                    className="text-green-500"
-                    size={18}
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">
-                    Backup completed
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Client ABC Website • 30 min ago
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <FiMessageSquare
-                    className="text-blue-500"
-                    size={18}
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">
-                    Message sent
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Client XYZ Shop • 1 hour ago
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">Recent Sites</h3>
+            <button
+              onClick={() => router.push('/dashboard/sites')}
+              className="text-sm text-orange-500 hover:text-orange-400 transition-colors"
+            >
+              View All
+            </button>
           </div>
+          {isLoadingSites ? (
+            <div className="flex items-center justify-center py-8 text-gray-400">
+              <FiClock className="animate-spin mr-2" size={18} />
+              Loading sites...
+            </div>
+          ) : sites.length === 0 ? (
+            <div className="text-center py-8">
+              <FiGlobe className="mx-auto text-gray-600 mb-3" size={48} />
+              <p className="text-gray-400 mb-4">No sites added yet</p>
+              <button
+                onClick={() => router.push('/dashboard/sites')}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg font-medium transition-colors"
+              >
+                Add Your First Site
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sites.slice(0, 5).map((site) => {
+                const client = clients.find((c) => c.clientId === site.clientId);
+                return (
+                  <div
+                    key={site.siteId}
+                    className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#222222] transition-colors cursor-pointer"
+                    onClick={() => router.push('/dashboard/sites')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <FiGlobe className="text-blue-500" size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{site.siteName || site.siteUrl}</p>
+                        <p className="text-xs text-gray-400">
+                          {client ? client.name : 'Unknown Client'} •{' '}
+                          {site.hostingProvider || 'No provider'}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      {site.status === 'active' ? (
+                        <span className="px-2 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-green-500 text-xs">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-gray-500/10 border border-gray-500/30 rounded-full text-gray-500 text-xs">
+                          {site.status || 'Inactive'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

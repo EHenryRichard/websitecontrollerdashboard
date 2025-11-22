@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -9,12 +9,25 @@ import {
   FiEye,
   FiEyeOff,
 } from 'react-icons/fi';
+import { showSuccess, showError, showPromise } from '../../utils/toast';
+import { saveUser } from '../../utils/userService';
+import { useAuth } from '../../contexts/AuthProvider';
 
 export default function SignupPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,20 +35,80 @@ export default function SignupPage() {
     confirmPassword: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showError('Please enter a valid email address');
       return;
     }
 
-    // TODO: Add actual registration logic here
-    console.log('Signup:', formData);
+    // Validate password length
+    if (formData.password.length < 8) {
+      showError('Password must be at least 8 characters long');
+      return;
+    }
 
-    // For now, just redirect to dashboard
-    // router.push('/dashboard');
+    // Validate password strength (at least one letter and one number)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/;
+    if (!passwordRegex.test(formData.password)) {
+      showError('Password must contain at least one letter and one number');
+      return;
+    }
+
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      showError('Passwords do not match!');
+      return;
+    }
+
+    // Validate full name
+    if (formData.name.trim().length < 2) {
+      showError('Please enter your full name');
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Prepare user data for API (using fullname instead of name)
+    const userData = {
+      fullname: formData.name,
+      email: formData.email,
+      password: formData.password,
+    };
+
+    // Use showPromise for loading, success, and error states
+    showPromise(
+      saveUser(userData),
+      {
+        loading: 'Creating your account...',
+        success: (result) => {
+          // Get success message from API response
+          const successMessage = result?.message || result?.msg || 'Account created successfully!';
+
+          // Redirect to dashboard after short delay
+          // setTimeout(() => {
+          //   router.push('/dashboard');
+          // }, 1500);
+
+          return successMessage;
+        },
+        error: (error) => {
+          // Extract error message
+          const errorMessage =
+            typeof error === 'string'
+              ? error
+              : error?.message || 'Failed to create account. Please try again.';
+
+          console.error('Signup error:', error);
+          return errorMessage;
+        },
+      }
+    ).finally(() => {
+      setIsLoading(false);
+    });
   };
 
   const handleChange = (e) => {
@@ -136,7 +209,7 @@ export default function SignupPage() {
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Must be at least 8 characters
+            Must be at least 8 characters with one letter and one number
           </p>
         </div>
 
@@ -207,9 +280,10 @@ export default function SignupPage() {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-3 bg-orange-500 hover:bg-orange-600 rounded-lg font-semibold transition-colors"
+          disabled={isLoading}
+          className="w-full py-3 bg-orange-500 hover:bg-orange-600 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Create Account
+          {isLoading ? 'Creating Account...' : 'Create Account'}
         </button>
       </form>
 

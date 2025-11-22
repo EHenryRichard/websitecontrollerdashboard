@@ -1,37 +1,36 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import TopBar from '@/components/layout/TopBar';
 import MiddlePanel from '@/components/layout/MiddlePanel';
 import SiteCard from '@/components/sites/SiteCard';
 import SiteForm from '@/components/sites/SiteForm';
-import { FiList } from 'react-icons/fi';
+import SitesList from '@/components/sites/SitesList';
+import { FiList, FiRefreshCw } from 'react-icons/fi';
+import { useAuth } from '@/contexts/AuthProvider';
+import { useData } from '@/contexts/DataProvider';
 
 export default function SitesPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { sites, isLoadingSites, fetchSites } = useData();
   const [showForm, setShowForm] = useState(false);
   const [selectedSite, setSelectedSite] = useState(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
 
-  // Mock data - replace with real data later
-  const sites = [
-    {
-      id: 1,
-      name: 'Client ABC Website',
-      url: 'clientabc.com',
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Client XYZ Shop',
-      url: 'clientxyz.com',
-      status: 'active',
-    },
-    {
-      id: 3,
-      name: 'Client DEF Portal',
-      url: 'clientdef.com',
-      status: 'inactive',
-    },
-  ];
+  // Clear selected site on mount to show grid view by default
+  useEffect(() => {
+    localStorage.removeItem('selectedSiteId');
+    setSelectedSite(null);
+  }, []);
+
+  // const siteid = fetchSites();
+  // Protect this page - redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace('/auth/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleAddClick = () => {
     setShowForm(true);
@@ -40,8 +39,31 @@ export default function SitesPage() {
 
   const handleSiteSelect = (siteId) => {
     setSelectedSite(siteId);
+    localStorage.setItem('selectedSiteId', siteId);
     setSidePanelOpen(false); // Close side panel when site selected
   };
+
+  const handleSaveSite = (newSite) => {
+    // Sites list is automatically updated by DataProvider
+    setShowForm(false);
+  };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-gray-400">
+          <FiRefreshCw className="animate-spin" size={20} />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render content if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -56,60 +78,47 @@ export default function SitesPage() {
         isOpen={sidePanelOpen}
         onClose={() => setSidePanelOpen(false)}
         renderItem={(site, isSelected, onClick) => (
-          <SiteCard
-            key={site.id}
-            site={site}
-            isSelected={isSelected}
-            onClick={onClick}
-          />
+          <SiteCard key={site.siteId} site={site} isSelected={isSelected} onClick={onClick} />
         )}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar
+          title="Sites Manager"
           description="Manage your client websites"
           onAddClick={handleAddClick}
           showToggleButton={true}
-          onToggleClick={() =>
-            setSidePanelOpen(!sidePanelOpen)
-          }
+          onToggleClick={() => setSidePanelOpen(!sidePanelOpen)}
+          site={sites.length}
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          {showForm ? (
-            <SiteForm
-              onCancel={() => setShowForm(false)}
-              onSave={() => {
-                // Handle save
-                setShowForm(false);
-              }}
-            />
+          {isLoadingSites ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center gap-2 text-gray-400">
+                <FiRefreshCw className="animate-spin" size={20} />
+                <span>Loading sites...</span>
+              </div>
+            </div>
+          ) : showForm ? (
+            <SiteForm onCancel={() => setShowForm(false)} onSave={handleSaveSite} />
           ) : selectedSite ? (
             <SiteForm
-              onCancel={() => setSelectedSite(null)}
-              onSave={() => {
-                // Handle save
+              onCancel={() => {
                 setSelectedSite(null);
+                localStorage.removeItem('selectedSiteId');
+              }}
+              onSave={() => {
+                // Sites list is automatically updated by DataProvider
+                setSelectedSite(null);
+                localStorage.removeItem('selectedSiteId');
               }}
             />
+          ) : sites.length > 0 ? (
+            <SitesList sites={sites} />
           ) : (
-            <div className="bg-[#111111] border border-[#222222] rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-4">
-                Select a Site
-              </h3>
-              <p className="text-gray-400 mb-4">
-                Select a site from the list to edit, or
-                click "Add New" to create a new site.
-              </p>
-              <button
-                onClick={() => setSidePanelOpen(true)}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <FiList size={18} />
-                <span>View All Sites</span>
-              </button>
-            </div>
+            <SiteForm onCancel={() => setShowForm(false)} onSave={handleSaveSite} />
           )}
         </div>
       </div>

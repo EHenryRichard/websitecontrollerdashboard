@@ -2,14 +2,20 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
-import {
-  navigationData,
-  settingsData,
-} from '../../data/data';
+import { FiUser, FiChevronDown, FiX, FiLogOut } from 'react-icons/fi';
+import { navigationData, settingsData } from '../../data/data';
+import { useUser } from '@/contexts/userProvider';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function Sidebar({ isOpen, onClose }) {
+  const { userDetails } = useUser();
+  const { logout } = useAuth();
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+  };
 
   return (
     <>
@@ -32,23 +38,14 @@ export default function Sidebar({ isOpen, onClose }) {
           flex flex-col
           shadow-2xl lg:shadow-none
           transform transition-all duration-300 ease-in-out
-          ${
-            isOpen
-              ? 'translate-x-0'
-              : '-translate-x-full lg:translate-x-0'
-          }
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
       >
         {/* Logo - Fixed at top */}
         <div className="relative z-20 h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-[#222222] bg-[#111111]">
           <div className=" w-6 h-7 ">
-            <Image
-              src="/favicon.png"
-              width={40}
-              height={16}
-              alt="Picture of the author"
-            />
+            <Image src="/favicon.png" width={40} height={16} alt="Picture of the author" />
           </div>
           {/* Close button - mobile only */}
           <button
@@ -69,12 +66,8 @@ export default function Sidebar({ isOpen, onClose }) {
                 <FiUser size={20} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  Admin User
-                </p>
-                <p className="text-xs text-gray-400 truncate">
-                  admin@example.com
-                </p>
+                <p className="text-sm font-medium truncate">{userDetails?.fullname}</p>
+                <p className="text-xs text-gray-400 truncate">{userDetails?.email}</p>
               </div>
               <button className="text-gray-400 hover:text-white transition-colors">
                 <FiChevronDown size={16} />
@@ -104,9 +97,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
           {/* Settings Section */}
           <div className="px-3">
-            <p className="px-3 text-xs font-semibold text-gray-500 uppercase mb-2">
-              Account
-            </p>
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase mb-2">Account</p>
             {settingsData.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -127,23 +118,25 @@ export default function Sidebar({ isOpen, onClose }) {
                 </Link>
               );
             })}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-red-500/10 hover:text-red-500 transition-all mt-2"
+            >
+              <FiLogOut size={18} />
+              <span>Logout</span>
+            </button>
           </div>
         </nav>
 
         {/* Stats Card - Fixed at bottom */}
         <div className="relative z-20 p-4 flex-shrink-0 border-t border-[#222222] bg-[#111111]">
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 mb-3 shadow-lg">
-            <p className="text-sm font-semibold mb-1">
-              Storage Usage
-            </p>
-            <p className="text-xs opacity-90 mb-2">
-              2.5 GB of 5 GB used
-            </p>
+            <p className="text-sm font-semibold mb-1">Storage Usage</p>
+            <p className="text-xs opacity-90 mb-2">2.5 GB of 5 GB used</p>
             <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white shadow-sm"
-                style={{ width: '50%' }}
-              ></div>
+              <div className="h-full bg-white shadow-sm" style={{ width: '50%' }}></div>
             </div>
           </div>
 

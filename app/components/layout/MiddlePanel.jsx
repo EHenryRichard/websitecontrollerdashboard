@@ -15,12 +15,7 @@ export default function MiddlePanel({
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />}
 
       {/* Side Panel */}
       <div
@@ -28,11 +23,7 @@ export default function MiddlePanel({
           fixed md:static inset-y-0 left-0 z-40
           w-80 bg-[#0f0f0f] border-r border-[#222222] flex flex-col
           transform transition-transform duration-300 ease-in-out
-          ${
-            isOpen
-              ? 'translate-x-0'
-              : '-translate-x-full md:translate-x-0'
-          }
+          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Header */}
@@ -40,10 +31,7 @@ export default function MiddlePanel({
           <h2 className="font-semibold">{title}</h2>
           <div className="flex items-center gap-2">
             {onAdd && (
-              <button
-                onClick={onAdd}
-                className="p-2 hover:bg-[#1a1a1a] rounded-lg text-orange-500"
-              >
+              <button onClick={onAdd} className="p-2 hover:bg-[#1a1a1a] rounded-lg text-orange-500">
                 <FiPlus size={18} />
               </button>
             )}
@@ -79,11 +67,7 @@ export default function MiddlePanel({
               No items found. Click + to add one.
             </div>
           ) : (
-            items.map((item) =>
-              renderItem(item, selectedId === item.id, () =>
-                onSelect(item.id)
-              )
-            )
+            items.map((item) => renderItem(item, selectedId === item.id, () => onSelect(item.id)))
           )}
         </div>
       </div>
