@@ -6,6 +6,7 @@ import MiddlePanel from '@/components/layout/MiddlePanel';
 import SiteCard from '@/components/sites/SiteCard';
 import SiteForm from '@/components/sites/SiteForm';
 import SitesList from '@/components/sites/SitesList';
+import NoSites from '@/components/sites/NoSites';
 import { FiList, FiRefreshCw } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useData } from '@/contexts/DataProvider';
@@ -17,7 +18,6 @@ export default function SitesPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedSite, setSelectedSite] = useState(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
-
   // Clear selected site on mount to show grid view by default
   useEffect(() => {
     localStorage.removeItem('selectedSiteId');
@@ -87,10 +87,12 @@ export default function SitesPage() {
         <TopBar
           title="Sites Manager"
           description="Manage your client websites"
+          showAddButton={!showForm}
           onAddClick={handleAddClick}
+          showViewSitesButton={showForm}
+          onViewSitesClick={() => setShowForm(false)}
           showToggleButton={true}
           onToggleClick={() => setSidePanelOpen(!sidePanelOpen)}
-          site={sites.length}
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -118,7 +120,7 @@ export default function SitesPage() {
           ) : sites.length > 0 ? (
             <SitesList sites={sites} />
           ) : (
-            <SiteForm onCancel={() => setShowForm(false)} onSave={handleSaveSite} />
+            <NoSites onAddSite={handleAddClick} />
           )}
         </div>
       </div>

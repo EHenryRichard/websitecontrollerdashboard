@@ -4,6 +4,7 @@ import axiosInstance from '@/utils/axiosInstance';
 import { showError } from '@/utils/toast';
 import { useAuth } from './AuthProvider';
 import { useUser } from '@/contexts/userProvider';
+
 const DataContext = createContext();
 
 export function DataProvider({ children }) {
@@ -12,7 +13,7 @@ export function DataProvider({ children }) {
   // State for different data types
   const [clients, setClients] = useState([]);
   const [sites, setSites] = useState([]);
-  const [siteWithId, setSiteWithId] = useState([]);
+  const [siteWithId, setSiteWithId] = useState(null); // Changed initial state to null for single site
   const [isLoadingClients, setIsLoadingClients] = useState(false);
   const [isLoadingSites, setIsLoadingSites] = useState(false);
   const [isLoadingSiteWithId, setIsLoadingSiteWithId] = useState(false);
@@ -60,22 +61,27 @@ export function DataProvider({ children }) {
     [isAuthenticated, userDetails]
   );
 
-  const fetchSiteWithId = useCallback(async (id, showLoading = true) => {
-    if (showLoading) setIsLoadingSiteWithId(true);
+  const fetchSiteWithId = useCallback(
+    async (id, showLoading = true) => {
+      if (showLoading) setIsLoadingSiteWithId(true);
 
-    try {
-      const response = await axiosInstance.get(`/sites/${id}`);
-      const siteData = response.data.data || [];
-      setIsLoadingSites(siteData);
-      return siteData;
-    } catch (error) {
-      throw new Error(error?.response?.data?.error);
-    } finally {
-      if (showLoading) setIsLoadingSiteWithId(false);
-    }
-  });
+      try {
+        const response = await axiosInstance.get(`/sites/${id}`);
+        const siteData = response.data.data || response.data || null; // Fallback to null if empty
+        setSiteWithId(siteData); // Fixed: Set the site data to the correct state, not isLoadingSites
+        return siteData;
+      } catch (error) {
+        showError(error?.response?.data?.error || 'Failed to load site'); // Show error toast for better UX
+        throw new Error(error?.response?.data?.error || 'Failed to load site');
+      } finally {
+        if (showLoading) setIsLoadingSiteWithId(false);
+      }
+    },
+    [isAuthenticated, userDetails]
+  );
 
-  const fetchUserWebSites = useCallback(async () => {});
+  const fetchUserWebSites = useCallback(async () => {}, []); // Placeholder; implement if needed
+
   // Auto-fetch data when user is authenticated
   useEffect(() => {
     if (isAuthenticated && userDetails) {
@@ -85,12 +91,15 @@ export function DataProvider({ children }) {
       // Clear data when logged out
       setClients([]);
       setSites([]);
+      setSiteWithId(null);
     }
-  }, [isAuthenticated, userDetails]);
+  }, [isAuthenticated, userDetails, fetchClients, fetchSites]);
+
   const value = {
     // Data
     clients,
     sites,
+    siteWithId, // Expose the single site state
 
     // Loading states
     isLoadingClients,

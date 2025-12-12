@@ -74,7 +74,7 @@ export default function SitesList({ sites }) {
                     {site.siteName || site.siteUrl}
                   </h3>
                   <a
-                    href={`https://${site.siteUrl}`}
+                    href={`${site.siteUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-orange-500 hover:text-orange-400 flex items-center gap-1 truncate"

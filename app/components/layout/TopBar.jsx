@@ -12,11 +12,13 @@ export default function TopBar({
   onToggleClick,
   showViewClientsButton = false,
   showSearchButton = false,
-  site = 0,
+  showViewSitesButton = false,
+  onViewSitesClick,
 }) {
   const { setNotificationOpen, setSearchOpen } = useGlobalUI();
   const router = useRouter();
 
+  
   return (
     <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center gap-3">
@@ -60,26 +62,25 @@ export default function TopBar({
             <span className="sm:hidden">Clients</span>
           </button>
         )}
-        {site > 1 ? (
+        {showAddButton && (
           <button
-            onClick={() => router.push('/dashboard/sites')}
+            onClick={onAddClick}
+            className="px-3 md:px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
+          >
+            <FiPlus size={18} />
+            <span className="hidden sm:inline">Add Site</span>
+            <span className="sm:hidden">Add Site</span>
+          </button>
+        )}
+        {showViewSitesButton && (
+          <button
+            onClick={onViewSitesClick}
             className="px-3 md:px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
           >
             <FiGlobe size={18} />
             <span className="hidden sm:inline">View Sites</span>
-            <span className="sm:hidden">Sites</span>
+            <span className="sm:hidden">View Sites</span>
           </button>
-        ) : (
-          showAddButton && (
-            <button
-              onClick={onAddClick}
-              className="px-3 md:px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
-            >
-              <FiPlus size={18} />
-              <span className="hidden sm:inline">Add New</span>
-              <span className="sm:hidden">Add</span>
-            </button>
-          )
         )}
       </div>
     </div>

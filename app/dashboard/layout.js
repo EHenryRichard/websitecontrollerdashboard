@@ -5,12 +5,24 @@ import Sidebar from '@/components/layout/Sidebar';
 import NotificationPanel from '@/components/shared/NotificationPanel';
 import SearchModal from '@/components/shared/SearchModal';
 import { FiMenu, FiSearch, FiBell } from 'react-icons/fi';
-import { useGlobalUI } from '@/contexts/GlobalUIProvider';
+import { useGlobalUI } from '@/contexts/GlobalUIProvider'; 
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthProvider';
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setNotificationOpen, setSearchOpen } =
     useGlobalUI();
+const { isAuthenticated, isLoading } = useAuth();
+const router = useRouter();
+// Protect this page - redirect to login if not authenticated
+useEffect(() => {
+  if (!isLoading && !isAuthenticated) {
+    router.replace('/auth/login');
+  }
+}, [isAuthenticated, isLoading, router]);
+
+
 
   // Fix for mobile browser address bar issue
   useEffect(() => {
@@ -34,7 +46,10 @@ export default function DashboardLayout({ children }) {
       );
     };
   }, []);
-
+// Don't render content if not authenticated
+if (!isAuthenticated) {
+  return null;
+}
   return (
     <div
       className="flex h-[100dvh] bg-[#0a0a0a] text-white overflow-hidden"
